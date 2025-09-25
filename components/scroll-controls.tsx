@@ -45,7 +45,7 @@ const searchEngines = [
   {
     name: "DuckDuckGo",
     url: "https://duckduckgo.com/?q=",
-    icon: "https://duckduckgo.com/assets/logo_header.v108.png", 
+    icon: "https://duckduckgo.com/assets/logo_header.v108.png", // ✅ working
   },
   {
     name: "YouTube",
@@ -54,8 +54,8 @@ const searchEngines = [
   },
   {
     name: "Wikipedia",
-    url: "https://en.wikipedia.org/static/images/project-logos/enwiki.png",
-    icon: "https://en.wikipedia.org/static/images/project-logos/enwiki.png", 
+    url: "https://en.wikipedia.org/wiki/Special:Search?search=",
+    icon: "https://en.wikipedia.org/static/images/project-logos/enwiki.png", // ✅ reliable
   },
   {
     name: "Amazon",
@@ -63,7 +63,6 @@ const searchEngines = [
     icon: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
   },
 ]
-
 
 export function ScrollControls({
   isScrolling,
@@ -121,11 +120,143 @@ export function ScrollControls({
     <div className="space-y-6">
       {currentMode === "scroll" ? (
         <>
-          {/* Scroll Mode UI (unchanged) */}
-          ...
+          {/* 🔹 Scroll Controls Card */}
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Scroll className="w-5 h-5 text-primary" />
+                Scroll Controls
+              </h2>
+              <Badge
+                variant="outline"
+                className={
+                  currentMode === "scroll" ? "text-primary border-primary bg-primary/10" : "text-muted-foreground"
+                }
+              >
+                {currentMode === "scroll" ? "Active" : "Inactive"}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <Button
+                onClick={() => handleManualScroll("up")}
+                variant="outline"
+                size="lg"
+                className="h-16 flex-col gap-2"
+                disabled={currentMode !== "scroll"}
+              >
+                <ArrowUp className="w-6 h-6" />
+                <span>Scroll Up</span>
+              </Button>
+              <Button
+                onClick={() => handleManualScroll("down")}
+                variant="outline"
+                size="lg"
+                className="h-16 flex-col gap-2"
+                disabled={currentMode !== "scroll"}
+              >
+                <ArrowDown className="w-6 h-6" />
+                <span>Scroll Down</span>
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Auto Scroll</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => setScrollDirection("up")}
+                    variant={scrollDirection === "up" ? "default" : "outline"}
+                    size="sm"
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={toggleAutoScroll} variant={autoScrollActive ? "destructive" : "default"} size="sm">
+                    {autoScrollActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </Button>
+                  <Button
+                    onClick={() => setScrollDirection("down")}
+                    variant={scrollDirection === "down" ? "default" : "outline"}
+                    size="sm"
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {autoScrollActive && (
+                <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <span className="text-sm text-primary">Auto scrolling {scrollDirection}</span>
+                  </div>
+                  <Progress value={75} className="h-1" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 mt-6">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">Scroll Speed</span>
+                <Badge variant="secondary">{scrollSpeed}px</Badge>
+              </div>
+              <Slider
+                value={[scrollSpeed]}
+                onValueChange={(value) => onScrollSpeedChange(value[0])}
+                max={200}
+                min={10}
+                step={10}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Slow</span>
+                <span>Fast</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <Button onClick={resetScrollPosition} variant="outline" size="sm" className="gap-2 bg-transparent">
+                <RotateCcw className="w-4 h-4" />
+                Reset Position
+              </Button>
+              <Button onClick={() => onScrollSpeedChange(50)} variant="outline" size="sm" className="gap-2">
+                <Zap className="w-4 h-4" />
+                Default Speed
+              </Button>
+            </div>
+          </Card>
+
+          {/* 🔹 Voice Command History */}
+          <Card className="p-6 bg-card border-border">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-primary" />
+              Voice Command History
+            </h3>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {commandHistory.length > 0 ? (
+                commandHistory.map((command, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50"
+                  >
+                    <span className="font-mono text-foreground">{command}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {index === 0 ? "Latest" : `${index + 1}`}
+                    </Badge>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No commands yet</p>
+                  <p className="text-sm">Start lip reading to see command history</p>
+                </div>
+              )}
+            </div>
+          </Card>
         </>
       ) : (
         <div className="space-y-6">
+          {/* 🔹 Search Mode */}
           <Card className="p-6 bg-card border-border">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -155,6 +286,7 @@ export function ScrollControls({
             </div>
           </Card>
 
+          {/* 🔹 Search Engines */}
           <Card className="p-6 bg-card border-border">
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <ExternalLink className="w-5 h-5 text-primary" />
