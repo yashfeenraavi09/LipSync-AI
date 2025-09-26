@@ -62,57 +62,77 @@ export default function LipReadingApp() {
 >([])
 
 
-  useEffect(() => {
-    if (isRecording) {
-      const predictions =
-        currentMode === "scroll"
-          ? ["scroll down", "scroll up", "stop", "faster", "slower"]
-          : ["search google", "find cats", "weather today", "news update", "youtube videos"]
+ useEffect(() => {
+  if (isRecording) {
+    const predictions =
+      currentMode === "scroll"
+        ? [
+            "scroll down",
+            "scroll up",
+            "stop",
+            "open whatsapp",
+            "open visual studio code",
+            "open vscode",
+            "open linkedIn",
+            "return to my website",
 
-      const interval = setInterval(() => {
-        const randomPrediction = predictions[Math.floor(Math.random() * predictions.length)]
-        setLastPrediction(randomPrediction)
-        setConfidence(Math.random() * 40 + 60)
+          ]
+        : ["search google", "find cats", "weather today", "news update", "youtube videos"]
 
-        if (currentMode === "search") {
-          setSearchQuery(randomPrediction)
-        }
-      }, 2000)
-      return () => clearInterval(interval)
-    }
-  }, [isRecording, currentMode])
+    const interval = setInterval(() => {
+      const randomPrediction = predictions[Math.floor(Math.random() * predictions.length)]
+      setLastPrediction(randomPrediction)
+      setConfidence(Math.random() * 40 + 60)
 
-  const handleScrollCommand = (command: string) => {
-  if (currentMode === "scroll") {
-    const timestamp = new Date().toLocaleTimeString()
-    setActivityLog((prev) => [
-      { type: "scroll", text: command, confidence: confidence, timestamp },
-      ...prev,
-    ])
+      if (currentMode === "search") {
+        setSearchQuery(randomPrediction)
+      }
+    }, 2000)
 
-    switch (command.toLowerCase()) {
-      case "scroll down":
-        window.scrollBy(0, scrollSpeed)
-        setIsScrolling(true)
-        setTimeout(() => setIsScrolling(false), 500)
-        break
-      case "scroll up":
-        window.scrollBy(0, -scrollSpeed)
-        setIsScrolling(true)
-        setTimeout(() => setIsScrolling(false), 500)
-        break
-      case "stop":
-        setIsScrolling(false)
-        break
-      case "faster":
-        setScrollSpeed((prev) => Math.min(prev + 20, 200))
-        break
-      case "slower":
-        setScrollSpeed((prev) => Math.max(prev - 20, 10))
-        break
-    }
+    return () => clearInterval(interval)
+  }
+}, [isRecording, currentMode])
+
+
+ const handleScrollCommand = (command: string) => {
+  const cmd = command.toLowerCase()
+  const timestamp = new Date().toLocaleTimeString()
+
+  // Log every command in activity
+  setActivityLog((prev) => [
+    { type: "scroll", text: command, confidence: confidence, timestamp },
+    ...prev,
+  ])
+
+  // 🔹 Scroll commands
+  if (cmd === "scroll down") {
+    window.scrollBy(0, scrollSpeed)
+    setIsScrolling(true)
+    setTimeout(() => setIsScrolling(false), 500)
+  } else if (cmd === "scroll up") {
+    window.scrollBy(0, -scrollSpeed)
+    setIsScrolling(true)
+    setTimeout(() => setIsScrolling(false), 500)
+  } else if (cmd === "stop") {
+    setIsScrolling(false)
+  } else if (cmd === "faster") {
+    setScrollSpeed((prev) => Math.min(prev + 20, 200))
+  } else if (cmd === "slower") {
+    setScrollSpeed((prev) => Math.max(prev - 20, 10))
+  }
+
+  // 🔹 Web shortcuts
+  else if (cmd === "open whatsapp") {
+    window.open("https://web.whatsapp.com", "_blank")
+  } else if (cmd === "open visual studio code" || cmd === "open vscode") {
+    window.open("https://vscode.dev", "_blank")
+  } else if (cmd === "open linkedin") {
+    window.open("https://www.linkedin.com", "_blank") }
+  else if (cmd === "return to my website") {
+    window.location.href = "/" // or your website URL
   }
 }
+
 
   useEffect(() => {
     if (lastPrediction && currentMode === "scroll") {
@@ -253,7 +273,7 @@ export default function LipReadingApp() {
                         Control webpage scrolling with your lips. Say commands like:
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                        {["scroll down", "scroll up", "stop", "faster"].map((cmd, i) => (
+                        {["scroll down", "scroll up", "stop", "open linkedIn"].map((cmd, i) => (
                           <Badge key={i} variant="outline">
                             "{cmd}"
                           </Badge>

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { SettingsIcon, Mic, Shield, Info, Zap, Volume2 } from "lucide-react"
 
@@ -23,12 +22,11 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
   const [audioFeedback, setAudioFeedback] = useState(true)
   const [visualFeedback, setVisualFeedback] = useState(true)
   const [autoStart, setAutoStart] = useState(false)
-  const [language, setLanguage] = useState("en")
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* General Settings */}
-      <Card className="p-6 bg-card border-border transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 animate-in slide-in-from-top-5 duration-500">
+      <Card className="p-6 bg-card border border-border shadow-sm rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
           <SettingsIcon className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">General Settings</h2>
@@ -42,7 +40,7 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
               <Button
                 variant={currentMode === "scroll" ? "default" : "outline"}
                 onClick={() => onModeChange("scroll")}
-                className="justify-start gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
+                className="justify-start gap-2"
               >
                 <Zap className="w-4 h-4" />
                 Scroll Mode
@@ -50,7 +48,7 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
               <Button
                 variant={currentMode === "search" ? "default" : "outline"}
                 onClick={() => onModeChange("search")}
-                className="justify-start gap-2 transition-all duration-300 hover:scale-105 hover:shadow-md"
+                className="justify-start gap-2"
               >
                 <Info className="w-4 h-4" />
                 Search Mode
@@ -60,35 +58,19 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
 
           <Separator className="bg-border" />
 
-          {/* Language Selection */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-foreground">Language</label>
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="bg-background border-border transition-all duration-300 hover:bg-muted/50">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="es">Spanish</SelectItem>
-                <SelectItem value="fr">French</SelectItem>
-                <SelectItem value="de">German</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Auto Start */}
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <label className="text-sm font-medium text-foreground">Auto Start Recording</label>
               <p className="text-xs text-muted-foreground">Automatically start recording when app opens</p>
             </div>
-            <Switch checked={autoStart} onCheckedChange={setAutoStart} className="transition-all duration-300" />
+            <Switch checked={autoStart} onCheckedChange={setAutoStart} />
           </div>
         </div>
       </Card>
 
       {/* Lip Reading Settings */}
-      <Card className="p-6 bg-card border-border transition-all duration-300 hover:shadow-lg animate-in slide-in-from-left-5 duration-700">
+      <Card className="p-6 bg-card border border-border shadow-sm rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
           <Mic className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">Lip Reading Settings</h2>
@@ -99,9 +81,7 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-foreground">Detection Sensitivity</label>
-              <Badge variant="secondary" className="transition-all duration-300 hover:scale-105">
-                {sensitivity}%
-              </Badge>
+              <Badge variant="secondary">{sensitivity}%</Badge>
             </div>
             <Slider
               value={[sensitivity]}
@@ -121,9 +101,7 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-foreground">Confidence Threshold</label>
-              <Badge variant="secondary" className="transition-all duration-300 hover:scale-105">
-                {confidenceThreshold}%
-              </Badge>
+              <Badge variant="secondary">{confidenceThreshold}%</Badge>
             </div>
             <Slider
               value={[confidenceThreshold]}
@@ -133,14 +111,14 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
               step={5}
               className="w-full"
             />
-            <p className="text-xs text-muted-foreground">Commands below this confidence level will be ignored</p>
+            <p className="text-xs text-muted-foreground">Commands below this confidence will be ignored</p>
           </div>
         </div>
       </Card>
 
       {/* Scroll Settings */}
       {currentMode === "scroll" && (
-        <Card className="p-6 bg-card border-border transition-all duration-300 hover:shadow-lg animate-in slide-in-from-right-5 duration-500">
+        <Card className="p-6 bg-card border border-border shadow-sm rounded-2xl">
           <div className="flex items-center gap-3 mb-4">
             <Zap className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Scroll Settings</h2>
@@ -151,9 +129,7 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-foreground">Scroll Speed</label>
-                <Badge variant="secondary" className="transition-all duration-300 hover:scale-105">
-                  {scrollSpeed}px
-                </Badge>
+                <Badge variant="secondary">{scrollSpeed}px</Badge>
               </div>
               <Slider
                 value={[scrollSpeed]}
@@ -169,21 +145,17 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
               </div>
             </div>
 
-            {/* Quick Speed Presets */}
+            {/* Quick Presets */}
             <div className="space-y-3">
               <label className="text-sm font-medium text-foreground">Quick Presets</label>
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { speed: 25, label: "Slow (25px)" },
-                  { speed: 50, label: "Normal (50px)" },
-                  { speed: 100, label: "Fast (100px)" },
-                ].map((preset) => (
+                {[{ speed: 25, label: "Slow (25px)" }, { speed: 50, label: "Normal (50px)" }, { speed: 100, label: "Fast (100px)" }].map((preset) => (
                   <Button
                     key={preset.speed}
                     variant="outline"
                     size="sm"
                     onClick={() => onScrollSpeedChange(preset.speed)}
-                    className="text-xs transition-all duration-300 hover:scale-105 hover:shadow-md"
+                    className="text-xs"
                   >
                     {preset.label}
                   </Button>
@@ -195,7 +167,7 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
       )}
 
       {/* Feedback Settings */}
-      <Card className="p-6 bg-card border-border transition-all duration-300 hover:shadow-lg animate-in slide-in-from-bottom-5 duration-700">
+      <Card className="p-6 bg-card border border-border shadow-sm rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
           <Volume2 className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">Feedback Settings</h2>
@@ -207,11 +179,7 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
               <label className="text-sm font-medium text-foreground">Audio Feedback</label>
               <p className="text-xs text-muted-foreground">Play sounds when commands are recognized</p>
             </div>
-            <Switch
-              checked={audioFeedback}
-              onCheckedChange={setAudioFeedback}
-              className="transition-all duration-300"
-            />
+            <Switch checked={audioFeedback} onCheckedChange={setAudioFeedback} />
           </div>
 
           <div className="flex items-center justify-between">
@@ -219,30 +187,26 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
               <label className="text-sm font-medium text-foreground">Visual Feedback</label>
               <p className="text-xs text-muted-foreground">Show visual indicators for commands</p>
             </div>
-            <Switch
-              checked={visualFeedback}
-              onCheckedChange={setVisualFeedback}
-              className="transition-all duration-300"
-            />
+            <Switch checked={visualFeedback} onCheckedChange={setVisualFeedback} />
           </div>
         </div>
       </Card>
 
       {/* Privacy & Security */}
-      <Card className="p-6 bg-card border-border transition-all duration-300 hover:shadow-lg animate-in slide-in-from-bottom-5 duration-900">
+      <Card className="p-6 bg-card border border-border shadow-sm rounded-2xl">
         <div className="flex items-center gap-3 mb-4">
           <Shield className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">Privacy & Security</h2>
         </div>
 
         <div className="space-y-4">
-          <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg transition-all duration-300 hover:bg-primary/15">
+          <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
             <h3 className="text-sm font-semibold text-primary mb-2">Data Processing</h3>
             <p className="text-xs text-muted-foreground mb-3">
               All lip reading processing happens locally on your device. No video data is sent to external servers.
             </p>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-chart-3 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-chart-3 rounded-full"></div>
               <span className="text-xs text-chart-3">Local Processing Active</span>
             </div>
           </div>
@@ -250,16 +214,10 @@ export function Settings({ currentMode, onModeChange, scrollSpeed, onScrollSpeed
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-foreground">Permissions</h3>
             <div className="space-y-2 text-xs text-muted-foreground">
-              {[
-                { name: "Camera Access", status: "Granted" },
-                { name: "Storage Access", status: "Granted" },
-              ].map((permission) => (
+              {[{ name: "Camera Access", status: "Granted" }, { name: "Storage Access", status: "Granted" }].map((permission) => (
                 <div key={permission.name} className="flex items-center justify-between">
                   <span>{permission.name}</span>
-                  <Badge
-                    variant="outline"
-                    className="text-chart-3 border-chart-3 transition-all duration-300 hover:bg-chart-3/10"
-                  >
+                  <Badge variant="outline" className="text-chart-3 border-chart-3">
                     {permission.status}
                   </Badge>
                 </div>

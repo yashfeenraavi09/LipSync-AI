@@ -364,3 +364,17 @@
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* Glow effect for all cards in dark mode */
+.dark .bg-card {
+  border-color: #acccff; /* Neon glow color */
+  box-shadow: 0 0 12px #84b3db, 0 0 24px #89b8f2/50, 0 0 48px #d7e2f0/30;
+  transition: all 0.5s ease-in-out;
+}
+
+
+.dark [class*="border-"] {
+  border-color: #0065cb !important;
+  box-shadow: 0 0 8px #5aa7f0, 0 0 16px #7f5af0/50;
+  transition: all 0.3s ease-in-out;
+}
