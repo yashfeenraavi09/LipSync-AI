@@ -8,7 +8,42 @@ import { WebcamCapture } from "@/components/webcam-capture"
 import { ScrollControls } from "@/components/scroll-controls"
 import { Settings } from "@/components/settings"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Activity, Camera, Scroll, SettingsIcon, Mic, MicOff, Zap, Search } from "lucide-react"
+import { Activity, Camera, Scroll, SettingsIcon, Mic, MicOff, Zap, Search, ExternalLink } from "lucide-react"
+import Image from "next/image"
+
+
+const searchEngines = [
+  {
+    name: "Google",
+    url: "https://www.google.com/search?q=",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+  },
+  {
+    name: "Bing",
+    url: "https://www.bing.com/search?q=",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/9/9c/Bing_Fluent_Logo.svg",
+  },
+  {
+    name: "DuckDuckGo",
+    url: "https://duckduckgo.com/?q=",
+    icon: "https://duckduckgo.com/assets/logo_header.v108.png",
+  },
+  {
+    name: "YouTube",
+    url: "https://www.youtube.com/results?search_query=",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg",
+  },
+  {
+    name: "Wikipedia",
+    url: "https://en.wikipedia.org/wiki/Special:Search?search=",
+    icon: "https://en.wikipedia.org/static/images/project-logos/enwiki.png",
+  },
+  {
+    name: "Amazon",
+    url: "https://www.amazon.com/s?k=",
+    icon: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
+  },
+]
 
 export default function LipReadingApp() {
   const [isRecording, setIsRecording] = useState(false)
@@ -19,6 +54,13 @@ export default function LipReadingApp() {
   const [scrollSpeed, setScrollSpeed] = useState(50)
   const [isScrolling, setIsScrolling] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [selectedEngine, setSelectedEngine] = useState(searchEngines[0]) // default Google
+
+
+  const [activityLog, setActivityLog] = useState<
+  { type: "scroll" | "search"; text: string; confidence?: number; timestamp: string }[]
+>([])
+
 
   useEffect(() => {
     if (isRecording) {
@@ -30,7 +72,7 @@ export default function LipReadingApp() {
       const interval = setInterval(() => {
         const randomPrediction = predictions[Math.floor(Math.random() * predictions.length)]
         setLastPrediction(randomPrediction)
-        setConfidence(Math.random() * 40 + 60) // 60-100% confidence
+        setConfidence(Math.random() * 40 + 60)
 
         if (currentMode === "search") {
           setSearchQuery(randomPrediction)
@@ -41,30 +83,36 @@ export default function LipReadingApp() {
   }, [isRecording, currentMode])
 
   const handleScrollCommand = (command: string) => {
-    if (currentMode === "scroll") {
-      switch (command.toLowerCase()) {
-        case "scroll down":
-          window.scrollBy(0, scrollSpeed)
-          setIsScrolling(true)
-          setTimeout(() => setIsScrolling(false), 500)
-          break
-        case "scroll up":
-          window.scrollBy(0, -scrollSpeed)
-          setIsScrolling(true)
-          setTimeout(() => setIsScrolling(false), 500)
-          break
-        case "stop":
-          setIsScrolling(false)
-          break
-        case "faster":
-          setScrollSpeed((prev) => Math.min(prev + 20, 200))
-          break
-        case "slower":
-          setScrollSpeed((prev) => Math.max(prev - 20, 10))
-          break
-      }
+  if (currentMode === "scroll") {
+    const timestamp = new Date().toLocaleTimeString()
+    setActivityLog((prev) => [
+      { type: "scroll", text: command, confidence: confidence, timestamp },
+      ...prev,
+    ])
+
+    switch (command.toLowerCase()) {
+      case "scroll down":
+        window.scrollBy(0, scrollSpeed)
+        setIsScrolling(true)
+        setTimeout(() => setIsScrolling(false), 500)
+        break
+      case "scroll up":
+        window.scrollBy(0, -scrollSpeed)
+        setIsScrolling(true)
+        setTimeout(() => setIsScrolling(false), 500)
+        break
+      case "stop":
+        setIsScrolling(false)
+        break
+      case "faster":
+        setScrollSpeed((prev) => Math.min(prev + 20, 200))
+        break
+      case "slower":
+        setScrollSpeed((prev) => Math.max(prev - 20, 10))
+        break
     }
   }
+}
 
   useEffect(() => {
     if (lastPrediction && currentMode === "scroll") {
@@ -72,14 +120,20 @@ export default function LipReadingApp() {
     }
   }, [lastPrediction, currentMode])
 
-  const triggerSearch = () => {
-    if (searchQuery.trim()) {
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, "_blank")
-    }
+ const triggerSearch = () => {
+  if (searchQuery.trim()) {
+    const timestamp = new Date().toLocaleTimeString()
+    setActivityLog((prev) => [
+      { type: "search", text: searchQuery, timestamp },
+      ...prev,
+    ])
+    window.open(selectedEngine.url + encodeURIComponent(searchQuery), "_blank")
   }
+}
 
   return (
     <div className="min-h-screen bg-background">
+      {/* 🔹 Navbar */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
@@ -108,6 +162,7 @@ export default function LipReadingApp() {
         </div>
       </div>
 
+      {/* 🔹 Tabs */}
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
           {[
@@ -130,8 +185,10 @@ export default function LipReadingApp() {
         </div>
 
         <div>
+          {/* 🔹 Main Tab */}
           {activeTab === "main" && (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Left: Webcam */}
               <Card className="p-4 sm:p-6 bg-card border-border">
                 <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Camera className="w-5 h-5 text-primary" />
@@ -157,6 +214,7 @@ export default function LipReadingApp() {
                 </div>
               </Card>
 
+              {/* Right: Control Mode */}
               <Card className="p-4 sm:p-6 bg-card border-border">
                 <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <SettingsIcon className="w-5 h-5 text-primary" />
@@ -164,6 +222,7 @@ export default function LipReadingApp() {
                 </h2>
 
                 <div className="space-y-4">
+                  {/* Mode Buttons */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Button
                       variant={currentMode === "scroll" ? "default" : "outline"}
@@ -183,6 +242,7 @@ export default function LipReadingApp() {
                     </Button>
                   </div>
 
+                  {/* Scroll Mode UI */}
                   {currentMode === "scroll" && (
                     <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg">
                       <h3 className="font-semibold text-primary mb-2 flex items-center gap-2">
@@ -206,6 +266,7 @@ export default function LipReadingApp() {
                     </div>
                   )}
 
+                  {/* Search Mode UI */}
                   {currentMode === "search" && (
                     <div className="p-4 bg-chart-2/10 border border-chart-2/20 rounded-lg">
                       <h3 className="font-semibold text-chart-2 mb-2 flex items-center gap-2">
@@ -213,11 +274,10 @@ export default function LipReadingApp() {
                         Search Mode Active
                       </h3>
                       <p className="text-sm text-muted-foreground mb-3">
-                        Speak your search queries and they'll appear in the search bar. Press enter or click search to
-                        run it.
+                        Speak your search queries and they'll appear in the search bar. Choose an engine & run it.
                       </p>
 
-                      {/* Search Bar */}
+                      {/* Search Bar + Engine Dropdown */}
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
@@ -229,16 +289,32 @@ export default function LipReadingApp() {
                           className="flex-1 px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                           placeholder="Waiting for lip input..."
                         />
+                        <select
+                          value={selectedEngine.name}
+                          onChange={(e) => {
+                            const engine = searchEngines.find((eng) => eng.name === e.target.value)
+                            if (engine) setSelectedEngine(engine)
+                          }}
+                          className="px-2 py-2 border rounded-lg bg-background text-foreground text-sm"
+                        >
+                          {searchEngines.map((engine) => (
+                            <option key={engine.name} value={engine.name}>
+                              {engine.name}
+                            </option>
+                          ))}
+                        </select>
                         <Button onClick={triggerSearch}>Search</Button>
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                        {["search google", "find cats", "weather today", "news update"].map((cmd, i) => (
-                          <Badge key={i} variant="outline">
-                            "{cmd}"
-                          </Badge>
-                        ))}
-                      </div>
+                      {/* Preview */}
+                      {searchQuery.trim() && (
+                        <div className="mt-3 p-2 bg-primary/10 border border-primary/20 rounded-lg text-sm">
+                          <p>
+                            Searching <span className="font-mono">"{searchQuery}"</span> on{" "}
+                            <span className="font-semibold">{selectedEngine.name}</span>
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -246,51 +322,65 @@ export default function LipReadingApp() {
             </div>
           )}
 
+          {/* 🔹 Scroll Controls Tab */}
           {activeTab === "scroll" && (
-            <div>
-              <ScrollControls
-                isScrolling={isScrolling}
-                scrollSpeed={scrollSpeed}
-                onScrollSpeedChange={setScrollSpeed}
-                currentMode={currentMode}
-                lastPrediction={lastPrediction}
-                searchQuery={searchQuery}
-                onSearchQueryChange={setSearchQuery}
-              />
+            <ScrollControls
+              isScrolling={isScrolling}
+              scrollSpeed={scrollSpeed}
+              onScrollSpeedChange={setScrollSpeed}
+              currentMode={currentMode}
+              lastPrediction={lastPrediction}
+              searchQuery={searchQuery}
+              onSearchQueryChange={setSearchQuery}
+            />
+          )}
+
+          {/* 🔹 Activity Tab */}
+{activeTab === "activity" && (
+  <Card className="p-4 sm:p-6 bg-card border-border">
+    <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+      <Activity className="w-5 h-5 text-primary" />
+      Recent Activity
+    </h2>
+    <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+      {activityLog.length === 0 ? (
+        <p className="text-muted-foreground text-sm">No activity yet...</p>
+      ) : (
+        activityLog.map((item, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50"
+          >
+            <div className="flex items-center gap-2">
+              {item.type === "scroll" ? (
+                <Scroll className="w-4 h-4 text-chart-3" />
+              ) : (
+                <Search className="w-4 h-4 text-chart-2" />
+              )}
+              <span className="font-mono text-foreground">{item.text}</span>
             </div>
-          )}
-
-          {activeTab === "activity" && (
-            <Card className="p-4 sm:p-6 bg-card border-border">
-              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" />
-                Recent Activity
-              </h2>
-              <div className="space-y-3">
-                {["scroll down", "scroll up", "stop", "faster", "scroll down"].map((cmd, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50"
-                  >
-                    <span className="font-mono text-foreground">{cmd}</span>
-                    <Badge variant="outline" className="text-chart-3 border-chart-3">
-                      {Math.floor(Math.random() * 20 + 80)}%
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
+            <div className="flex items-center gap-2">
+              {item.confidence && (
+                <Badge variant="outline" className="text-chart-3 border-chart-3">
+                  {item.confidence.toFixed(0)}%
+                </Badge>
+              )}
+              <span className="text-xs text-muted-foreground">{item.timestamp}</span>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  </Card>
+)}
+          {/* 🔹 Settings Tab */}
           {activeTab === "settings" && (
-            <div>
-              <Settings
-                currentMode={currentMode}
-                onModeChange={setCurrentMode}
-                scrollSpeed={scrollSpeed}
-                onScrollSpeedChange={setScrollSpeed}
-              />
-            </div>
+            <Settings
+              currentMode={currentMode}
+              onModeChange={setCurrentMode}
+              scrollSpeed={scrollSpeed}
+              onScrollSpeedChange={setScrollSpeed}
+            />
           )}
         </div>
       </div>
