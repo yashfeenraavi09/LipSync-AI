@@ -8,41 +8,27 @@ import { WebcamCapture } from "@/components/webcam-capture"
 import { ScrollControls } from "@/components/scroll-controls"
 import { Settings } from "@/components/settings"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Activity, Camera, Scroll, SettingsIcon, Mic, MicOff, Zap, Search, ExternalLink } from "lucide-react"
-import Image from "next/image"
+import {
+  Activity,
+  Camera,
+  Scroll,
+  SettingsIcon,
+  Mic,
+  MicOff,
+  Zap,
+  Search,
+} from "lucide-react"
+import Sentiment from "sentiment"
 
+const sentimentAnalyzer = new Sentiment()
 
 const searchEngines = [
-  {
-    name: "Google",
-    url: "https://www.google.com/search?q=",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
-  },
-  {
-    name: "Bing",
-    url: "https://www.bing.com/search?q=",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/9/9c/Bing_Fluent_Logo.svg",
-  },
-  {
-    name: "DuckDuckGo",
-    url: "https://duckduckgo.com/?q=",
-    icon: "https://duckduckgo.com/assets/logo_header.v108.png",
-  },
-  {
-    name: "YouTube",
-    url: "https://www.youtube.com/results?search_query=",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/b/b8/YouTube_Logo_2017.svg",
-  },
-  {
-    name: "Wikipedia",
-    url: "https://en.wikipedia.org/wiki/Special:Search?search=",
-    icon: "https://en.wikipedia.org/static/images/project-logos/enwiki.png",
-  },
-  {
-    name: "Amazon",
-    url: "https://www.amazon.com/s?k=",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
-  },
+  { name: "Google", url: "https://www.google.com/search?q=" },
+  { name: "Bing", url: "https://www.bing.com/search?q=" },
+  { name: "DuckDuckGo", url: "https://duckduckgo.com/?q=" },
+  { name: "YouTube", url: "https://www.youtube.com/results?search_query=" },
+  { name: "Wikipedia", url: "https://en.wikipedia.org/wiki/Special:Search?search=" },
+  { name: "Amazon", url: "https://www.amazon.com/s?k=" },
 ]
 
 export default function LipReadingApp() {
@@ -50,107 +36,117 @@ export default function LipReadingApp() {
   const [currentMode, setCurrentMode] = useState<"scroll" | "search">("scroll")
   const [lastPrediction, setLastPrediction] = useState("")
   const [confidence, setConfidence] = useState(0)
+  const [sentiment, setSentiment] = useState<"Positive" | "Negative" | "Neutral" | "">("")
   const [activeTab, setActiveTab] = useState("main")
   const [scrollSpeed, setScrollSpeed] = useState(50)
   const [isScrolling, setIsScrolling] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedEngine, setSelectedEngine] = useState(searchEngines[0]) // default Google
-
+  const [searchSentiment, setSearchSentiment] = useState<"Positive" | "Negative" | "Neutral" | "">("")
+  const [selectedEngine, setSelectedEngine] = useState(searchEngines[0])
 
   const [activityLog, setActivityLog] = useState<
-  { type: "scroll" | "search"; text: string; confidence?: number; timestamp: string }[]
->([])
+    { type: "scroll" | "search"; text: string; confidence?: number; sentiment?: string; timestamp: string }[]
+  >([])
 
-
- useEffect(() => {
-  if (isRecording) {
-    const predictions =
-      currentMode === "scroll"
-        ? [
-            "open whatsapp",
-            "open visual studio code",
-            "open vscode",
-            "open linkedIn",
-            "return to my website",
-
-          ]
-        : ["search google", "find cats", "weather today", "news update", "youtube videos"]
-
-    const interval = setInterval(() => {
-      const randomPrediction = predictions[Math.floor(Math.random() * predictions.length)]
-      setLastPrediction(randomPrediction)
-      setConfidence(Math.random() * 40 + 60)
-
-      if (currentMode === "search") {
-        setSearchQuery(randomPrediction)
-      }
-    }, 2000)
-
-    return () => clearInterval(interval)
-  }
-}, [isRecording, currentMode])
-
-
- const handleScrollCommand = (command: string) => {
-  const cmd = command.toLowerCase()
-  const timestamp = new Date().toLocaleTimeString()
-
-  // Log every command in activity
-  setActivityLog((prev) => [
-    { type: "scroll", text: command, confidence: confidence, timestamp },
-    ...prev,
-  ])
-
-  // 🔹 Scroll commands
-  if (cmd === "scroll down") {
-    window.scrollBy(0, scrollSpeed)
-    setIsScrolling(true)
-    setTimeout(() => setIsScrolling(false), 500)
-  } else if (cmd === "scroll up") {
-    window.scrollBy(0, -scrollSpeed)
-    setIsScrolling(true)
-    setTimeout(() => setIsScrolling(false), 500)
-  } else if (cmd === "stop") {
-    setIsScrolling(false)
-  } else if (cmd === "faster") {
-    setScrollSpeed((prev) => Math.min(prev + 20, 200))
-  } else if (cmd === "slower") {
-    setScrollSpeed((prev) => Math.max(prev - 20, 10))
-  }
-
-  // 🔹 Web shortcuts
-  else if (cmd === "open whatsapp") {
-    window.open("https://web.whatsapp.com", "_blank")
-  } else if (cmd === "open visual studio code" || cmd === "open vscode") {
-    window.open("https://vscode.dev", "_blank")
-  } else if (cmd === "open linkedin") {
-    window.open("https://www.linkedin.com", "_blank") }
-  else if (cmd === "return to my website") {
-    window.location.href = "/" // or your website URL
-  }
-}
-
-
+  // 🔹 Simulated lip-reading predictions
   useEffect(() => {
-    if (lastPrediction && currentMode === "scroll") {
-      handleScrollCommand(lastPrediction)
-    }
-  }, [lastPrediction, currentMode])
+    if (isRecording) {
+      const predictions =
+        currentMode === "scroll"
+          ? ["open whatsapp", "open visual studio code", "open vscode", "open linkedIn", "return to my website"]
+          : ["search google", "find cats", "weather today", "news update", "youtube videos"]
 
- const triggerSearch = () => {
-  if (searchQuery.trim()) {
+      const interval = setInterval(() => {
+        const randomPrediction = predictions[Math.floor(Math.random() * predictions.length)]
+        setLastPrediction(randomPrediction)
+        const randomConfidence = Math.random() * 40 + 60
+        setConfidence(randomConfidence)
+
+        // 🔹 Sentiment Analysis
+        const result = sentimentAnalyzer.analyze(randomPrediction)
+        if (result.score > 0) setSentiment("Positive")
+        else if (result.score < 0) setSentiment("Negative")
+        else setSentiment("Neutral")
+
+        if (currentMode === "search") {
+          setSearchQuery(randomPrediction)
+        }
+      }, 2000)
+
+      return () => clearInterval(interval)
+    }
+  }, [isRecording, currentMode])
+
+  // 🔹 Handle scrolling/web commands
+  const handleScrollCommand = (command: string) => {
+    const cmd = command.toLowerCase()
     const timestamp = new Date().toLocaleTimeString()
+
+    // Log every command in activity
     setActivityLog((prev) => [
-      { type: "search", text: searchQuery, timestamp },
+      { type: "scroll", text: command, confidence, sentiment, timestamp },
       ...prev,
     ])
-    window.open(selectedEngine.url + encodeURIComponent(searchQuery), "_blank")
+
+    // Scroll commands
+    if (cmd === "scroll down") {
+      window.scrollBy(0, scrollSpeed)
+      setIsScrolling(true)
+      setTimeout(() => setIsScrolling(false), 500)
+    } else if (cmd === "scroll up") {
+      window.scrollBy(0, -scrollSpeed)
+      setIsScrolling(true)
+      setTimeout(() => setIsScrolling(false), 500)
+    } else if (cmd === "stop") {
+      setIsScrolling(false)
+    } else if (cmd === "faster") {
+      setScrollSpeed((prev) => Math.min(prev + 20, 200))
+    } else if (cmd === "slower") {
+      setScrollSpeed((prev) => Math.max(prev - 20, 10))
+    }
+
+    // Web shortcuts
+    else if (cmd === "open whatsapp") window.open("https://web.whatsapp.com", "_blank")
+    else if (cmd === "open visual studio code" || cmd === "open vscode") window.open("https://vscode.dev", "_blank")
+    else if (cmd === "open linkedin") window.open("https://www.linkedin.com", "_blank")
+    else if (cmd === "return to my website") window.location.href = "/"
   }
-}
+
+  useEffect(() => {
+    if (lastPrediction && currentMode === "scroll") handleScrollCommand(lastPrediction)
+  }, [lastPrediction, currentMode])
+
+  // 🔹 Trigger search
+  const triggerSearch = () => {
+    if (searchQuery.trim()) {
+      const timestamp = new Date().toLocaleTimeString()
+      const result = sentimentAnalyzer.analyze(searchQuery)
+      let sentimentText: "Positive" | "Negative" | "Neutral" | "" = ""
+      if (result.score > 0) sentimentText = "Positive"
+      else if (result.score < 0) sentimentText = "Negative"
+      else sentimentText = "Neutral"
+
+      setActivityLog((prev) => [
+        { type: "search", text: searchQuery, sentiment: sentimentText, timestamp },
+        ...prev,
+      ])
+      window.open(selectedEngine.url + encodeURIComponent(searchQuery), "_blank")
+    }
+  }
+
+  // 🔹 Real-time search sentiment
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const result = sentimentAnalyzer.analyze(searchQuery)
+      if (result.score > 0) setSearchSentiment("Positive")
+      else if (result.score < 0) setSearchSentiment("Negative")
+      else setSearchSentiment("Neutral")
+    } else setSearchSentiment("")
+  }, [searchQuery])
 
   return (
     <div className="min-h-screen bg-background">
-      {/* 🔹 Navbar */}
+      {/* Navbar */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
@@ -179,7 +175,7 @@ export default function LipReadingApp() {
         </div>
       </div>
 
-      {/* 🔹 Tabs */}
+      {/* Tabs */}
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
           {[
@@ -202,7 +198,7 @@ export default function LipReadingApp() {
         </div>
 
         <div>
-          {/* 🔹 Main Tab */}
+          {/* Main Tab */}
           {activeTab === "main" && (
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Left: Webcam */}
@@ -228,6 +224,22 @@ export default function LipReadingApp() {
                   <p className="text-lg font-mono text-foreground break-words">
                     {lastPrediction || "Start recording to see predictions..."}
                   </p>
+
+                  {/* Sentiment Badge */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Sentiment:</span>
+                    <Badge
+                      variant={
+                        sentiment === "Positive"
+                          ? "success"
+                          : sentiment === "Negative"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                    >
+                      {sentiment || "—"}
+                    </Badge>
+                  </div>
                 </div>
               </Card>
 
@@ -300,9 +312,7 @@ export default function LipReadingApp() {
                           type="text"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") triggerSearch()
-                          }}
+                          onKeyDown={(e) => { if (e.key === "Enter") triggerSearch() }}
                           className="flex-1 px-3 py-2 border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                           placeholder="Waiting for lip input..."
                         />
@@ -315,13 +325,29 @@ export default function LipReadingApp() {
                           className="px-2 py-2 border rounded-lg bg-background text-foreground text-sm"
                         >
                           {searchEngines.map((engine) => (
-                            <option key={engine.name} value={engine.name}>
-                              {engine.name}
-                            </option>
+                            <option key={engine.name} value={engine.name}>{engine.name}</option>
                           ))}
                         </select>
                         <Button onClick={triggerSearch}>Search</Button>
                       </div>
+
+                      {/* Search Sentiment */}
+                      {searchQuery.trim() && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Sentiment:</span>
+                          <Badge
+                            variant={
+                              searchSentiment === "Positive"
+                                ? "success"
+                                : searchSentiment === "Negative"
+                                ? "destructive"
+                                : "secondary"
+                            }
+                          >
+                            {searchSentiment || "—"}
+                          </Badge>
+                        </div>
+                      )}
 
                       {/* Preview */}
                       {searchQuery.trim() && (
@@ -339,7 +365,7 @@ export default function LipReadingApp() {
             </div>
           )}
 
-          {/* 🔹 Scroll Controls Tab */}
+          {/* Scroll Controls Tab */}
           {activeTab === "scroll" && (
             <ScrollControls
               isScrolling={isScrolling}
@@ -352,52 +378,63 @@ export default function LipReadingApp() {
             />
           )}
 
-          {/* 🔹 Activity Tab */}
-{activeTab === "activity" && (
-  <Card className="p-4 sm:p-6 bg-card border-border">
-    <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-      <Activity className="w-5 h-5 text-primary" />
-      Recent Activity
-    </h2>
-    <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
-      {activityLog.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No activity yet...</p>
-      ) : (
-        activityLog.map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50"
-          >
-            <div className="flex items-center gap-2">
-              {item.type === "scroll" ? (
-                <Scroll className="w-4 h-4 text-chart-3" />
-              ) : (
-                <Search className="w-4 h-4 text-chart-2" />
-              )}
-              <span className="font-mono text-foreground">{item.text}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {item.confidence && (
-                <Badge variant="outline" className="text-chart-3 border-chart-3">
-                  {item.confidence.toFixed(0)}%
-                </Badge>
-              )}
-              <span className="text-xs text-muted-foreground">{item.timestamp}</span>
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  </Card>
-)}
-          {/* 🔹 Settings Tab */}
+          {/* Activity Tab */}
+          {activeTab === "activity" && (
+            <Card className="p-4 sm:p-6 bg-card border-border">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary" />
+                Recent Activity
+              </h2>
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                {activityLog.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">No activity yet...</p>
+                ) : (
+                  activityLog.map((item, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border/50"
+                    >
+                      <div className="flex items-center gap-2">
+                        {item.type === "scroll" ? (
+                          <Scroll className="w-4 h-4 text-chart-3" />
+                        ) : (
+                          <Search className="w-4 h-4 text-chart-2" />
+                        )}
+                        <span className="font-mono text-foreground">{item.text}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {item.confidence && (
+                          <Badge variant="outline" className="text-chart-3 border-chart-3">
+                            {item.confidence.toFixed(0)}%
+                          </Badge>
+                        )}
+                        {item.sentiment && (
+                          <Badge
+                            variant={
+                              item.sentiment === "Positive"
+                                ? "success"
+                                : item.sentiment === "Negative"
+                                ? "destructive"
+                                : "secondary"
+                            }
+                          >
+                            {item.sentiment}
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">{item.timestamp}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Settings Tab */}
           {activeTab === "settings" && (
-            <Settings
-              currentMode={currentMode}
-              onModeChange={setCurrentMode}
-              scrollSpeed={scrollSpeed}
-              onScrollSpeedChange={setScrollSpeed}
-            />
+            <Card className="p-4 sm:p-6 bg-card border-border">
+              <Settings />
+            </Card>
           )}
         </div>
       </div>
