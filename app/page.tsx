@@ -67,9 +67,7 @@ export default function LipReadingApp() {
     const predictions =
       currentMode === "scroll"
         ? [
-            "scroll down",
-            "scroll up",
-            "stop",
+         
             "open whatsapp",
             "open visual studio code",
             "open vscode",
